@@ -51,7 +51,7 @@ const LessonDetail = ({ lessonSlug, lessonNumber, onExamDataUpdate }) => {
     const fetchLesson = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/lessons/${lessonSlug}`);
+        const res = await axios.get(`https://vmaths-backend.onrender.com/api/lessons/${lessonSlug}`);
         if (isMounted) {
           setLesson(res.data);
           setExamStatus('idle');
