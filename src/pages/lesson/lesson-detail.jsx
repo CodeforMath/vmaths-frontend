@@ -71,7 +71,7 @@ const LessonDetail = ({ lessonSlug, lessonNumber, onExamDataUpdate }) => {
     if (!lesson?._id) return;
     setIsGenerating(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/exams/generate`, {
+      const res = await axios.get(`https://vmaths-backend.onrender.com/api/exams/generate`, {
         params: { 
           lessonId: lesson.lessonId || lesson.id, 
           limit: count, 
