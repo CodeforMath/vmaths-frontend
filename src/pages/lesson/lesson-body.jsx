@@ -44,11 +44,11 @@ const LessonBody = ({ sections, onImageClick, lessonId }) => {
             if (!d.content) return null;
             return (
               <div key={`${lessonId}-section-${index}`} className="px-2 group">
-                {/* Bao bọc bởi MathJax để render các công thức nằm trong nội dung paragraph.
-                   leading-[2]: Tăng khoảng cách dòng để các công thức Toán (phân số, số mũ) 
-                   hiển thị rõ ràng, không bị dính vào nhau.
+                {/* 
+                  SỬA TẠI ĐÂY: Thêm thuộc tính dynamic cho MathJax 
+                  để nó quét lại mỗi khi nội dung content thay đổi.
                 */}
-                <MathJax>
+                <MathJax dynamic>
                   <SmartText 
                     text={d.content} 
                     onImageClick={onImageClick}
