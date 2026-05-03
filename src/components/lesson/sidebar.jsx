@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, BookOpen, PencilLine, ChevronLeft } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/config';
 
 export default function Sidebar({ selectedData, onSelectLesson, activeLessonId, onClose }) {
-  const [openChapter, setOpenChapter] = useState(0);
+  // Fix 1: Luôn khởi tạo là mảng để không bị lỗi .includes()
+  const [openChapters, setOpenChapters] = useState([0]);
   const [dbLessons, setDbLessons] = useState([]);
 
-  // 1. Lấy dữ liệu từ Database mỗi khi đổi khối lớp (Toán 10, 11, 12...)
+  // 1. Lấy dữ liệu từ Database mỗi khi đổi khối lớp
   useEffect(() => {
     const fetchDBLessons = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/lessons');
-        // Lọc bài giảng theo label (VD: "Toán 12")
+        const res = await axios.get(`${API_BASE_URL}/lessons`);
         const filtered = res.data.filter(l => l.grade === selectedData.label);
         setDbLessons(filtered);
       } catch (err) {
@@ -21,14 +22,30 @@ export default function Sidebar({ selectedData, onSelectLesson, activeLessonId, 
     
     if (selectedData) {
       fetchDBLessons();
-      setOpenChapter(0); // Reset mở chương đầu tiên khi đổi lớp
+      // Fix 2: Set lại mảng [0] thay vì số 0 để đồng nhất kiểu dữ liệu
+      setOpenChapters([0]); 
     }
   }, [selectedData]);
 
-  // 2. Hàm trộn dữ liệu: Ưu tiên bài từ DB, bài nào trùng slug thì lấy từ DB
+  // Lắng nghe tín hiệu mở chương từ Search
+  useEffect(() => {
+    const handleOpenChapter = (e) => {
+      const { chapterId } = e.detail;
+      
+      setOpenChapters(prev => {
+        // Fix 3: Kiểm tra phòng hờ nếu prev không phải mảng
+        const currentOpen = Array.isArray(prev) ? prev : [];
+        if (currentOpen.includes(chapterId)) return currentOpen;
+        return [...currentOpen, chapterId];
+      });
+    };
+
+    window.addEventListener('SEARCH_OPEN_CHAPTER', handleOpenChapter);
+    return () => window.removeEventListener('SEARCH_OPEN_CHAPTER', handleOpenChapter);
+  }, []);
+
+  // 2. Hàm trộn dữ liệu
   const getCombinedLessons = (idx, staticLessons) => {
-    // Nếu là chương 1 (hoặc bác muốn trộn ở tất cả chương thì bỏ điều kiện idx === 0)
-    // Hiện tại em giữ logic cũ của bác: Ưu tiên trộn vào chương đầu tiên
     if (idx === 0) {
       const dbSlugs = dbLessons.map(l => l.slug);
       const filteredStatic = (staticLessons || []).filter(
@@ -39,17 +56,10 @@ export default function Sidebar({ selectedData, onSelectLesson, activeLessonId, 
     return staticLessons || [];
   };
 
-  const getHeaderPrefix = (type) => {
-    if (type === "school") return "LỚP";
-    if (type === "subject") return "MÔN";
-    if (type === "course") return "HỌC PHẦN";
-    return "";
-  };
-
   if (!selectedData) return null;
 
   return (
-    <aside className="w-full md:w-80 bg-[#f8fafc] border-r border-slate-200 h-full flex flex-col font-sans z-[9999]">
+    <aside className="fixed left-0 top-0 bottom-0 w-full md:w-80 bg-[#f8fafc] border-r border-slate-200 flex flex-col font-sans z-[9999]">
       {/* TIÊU ĐỀ SIDEBAR */}
       <div className="p-5 bg-white border-b border-slate-100 shadow-sm shrink-0">
         <div className="flex items-center justify-between">
@@ -58,7 +68,6 @@ export default function Sidebar({ selectedData, onSelectLesson, activeLessonId, 
               DANH MỤC BÀI HỌC
             </div>
             <h2 className="text-lg font-black text-slate-800 uppercase leading-tight">
-              {/* Hiển thị trực tiếp "Toán 12", "Luyện thi THPT"... */}
               {selectedData.label}
             </h2>
           </div>
@@ -76,15 +85,23 @@ export default function Sidebar({ selectedData, onSelectLesson, activeLessonId, 
       <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
         {selectedData.chapters && selectedData.chapters.length > 0 ? (
           selectedData.chapters.map((chapter, idx) => {
-            const isExpanded = openChapter === idx;
+            // Fix 4: Dùng chapter.id hoặc index để so sánh trong mảng
+            const chapterKey = chapter.id || idx;
+            const isExpanded = openChapters.includes(chapterKey);
             
-            // Trộn bài từ Database vào danh sách tĩnh
             const combinedLessons = getCombinedLessons(idx, chapter.lessons);
 
             return (
-              <div key={chapter.id || idx} className="mb-3">
+              <div key={chapterKey} className="mb-3">
                 <button
-                  onClick={() => setOpenChapter(isExpanded ? null : idx)}
+                  onClick={() => {
+                    // Logic đóng mở chương
+                    setOpenChapters(prev => 
+                      prev.includes(chapterKey) 
+                        ? prev.filter(id => id !== chapterKey) 
+                        : [...prev, chapterKey]
+                    );
+                  }}
                   className={`w-full flex items-start justify-between p-3.5 rounded-xl transition-all duration-300 ${
                     isExpanded 
                     ? 'bg-slate-900 text-white shadow-md' 
@@ -100,7 +117,6 @@ export default function Sidebar({ selectedData, onSelectLesson, activeLessonId, 
                   <ChevronDown size={16} className={`shrink-0 mt-0.5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* DANH SÁCH BÀI HỌC CON */}
                 <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[2000px] opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
                   <div className="ml-5 border-l-2 border-slate-200/60 my-1">
                     {combinedLessons.map((lesson) => {
@@ -108,6 +124,7 @@ export default function Sidebar({ selectedData, onSelectLesson, activeLessonId, 
                       
                       return (
                         <button
+                          id={`lesson-${lesson.id}`}
                           key={lesson.slug || lesson.id}
                           onClick={() => onSelectLesson(lesson)}
                           className={`w-full flex items-center gap-3 pl-6 pr-4 py-3 text-[11px] font-semibold uppercase transition-all relative group text-left ${

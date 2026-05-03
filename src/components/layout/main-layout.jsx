@@ -8,14 +8,10 @@ export default function MainLayout({ selectedCategory, isSidebarOpen, setIsSideb
   const [lessonNumber, setLessonNumber] = useState(1);
   const [examDataFromChild, setExamDataFromChild] = useState(null);
 
+  const NAV_HEIGHT = "112px"; 
   const isExamView = examDataFromChild?.isExamMode === true;
 
-  useEffect(() => {
-    setActiveLesson(null);
-    setIsSidebarOpen(false);
-    setExamDataFromChild(null);
-  }, [selectedCategory, setIsSidebarOpen]);
-
+  // 1. Hàm handleSelectLesson đưa lên trên để các useEffect phía dưới nhìn thấy
   const handleSelectLesson = (lesson, number) => {
     setActiveLesson({ ...lesson, slug: lesson.slug });
     setLessonNumber(number || 1); 
@@ -23,50 +19,98 @@ export default function MainLayout({ selectedCategory, isSidebarOpen, setIsSideb
     setExamDataFromChild(null); 
   };
 
-  return (
-    <div className="flex flex-1 h-full overflow-hidden bg-white relative font-sans">
+  // 2. Reset khi đổi khối lớp
+  useEffect(() => {
+    setActiveLesson(null);
+    setIsSidebarOpen(false);
+    setExamDataFromChild(null);
+  }, [selectedCategory, setIsSidebarOpen]);
+
+  // 3. HÀM QUAN TRỌNG NHẤT: Kết nối Navbar Search -> Sidebar
+  useEffect(() => {
+    window.forceOpenLesson = (lesson) => {
+      if (!lesson) return;
+
+      // Bước A: Hiển thị nội dung bài học ngay giữa màn hình
+      handleSelectLesson(lesson);
       
-      {/* 1. OVERLAY Mobile */}
+      // Bước B: Bắn tín hiệu cho Sidebar mở chương ra
+      // Cháu thêm một chút delay để đảm bảo Sidebar đã sẵn sàng
+      setTimeout(() => {
+        const event = new CustomEvent('SEARCH_OPEN_CHAPTER', { 
+          detail: { chapterId: lesson.chapterId } 
+        });
+        window.dispatchEvent(event);
+        console.log("Đã phát lệnh mở chương:", lesson.chapterId);
+      }, 100);
+    };
+
+    // Dọn dẹp hàm khi component bị hủy
+    return () => { delete window.forceOpenLesson; };
+  }, [selectedCategory]); 
+
+  return (
+    // 1. Container chính: Thêm mt để đẩy toàn bộ layout xuống dưới Navbar
+    <div 
+      className="flex flex-1 overflow-hidden bg-white relative font-sans w-full"
+      style={{ marginTop: NAV_HEIGHT, height: `calc(100vh - ${NAV_HEIGHT})` }}
+    >
+      
+      {/* 2. OVERLAY Mobile */}
       <div 
         className={`fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm md:hidden transition-opacity duration-300 ${
           isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
+        style={{ top: 0 }} // Overlay bắt đầu từ dưới Navbar vì container đã có marginTop
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* 2. SIDEBAR TRÁI */}
+      {/* 3. SIDEBAR TRÁI: Bỏ fixed top-[112px] vì cha đã có margin rồi */}
       {!isExamView && (
-        <aside className={`fixed top-[112px] bottom-0 left-0 z-[9999] w-[300px] transform transition-transform duration-500 bg-[#f8fafc] border-r border-slate-200 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:relative md:top-0 md:translate-x-0 md:block md:shrink-0 md:h-full`}>
-          <Sidebar selectedData={selectedCategory} onSelectLesson={handleSelectLesson} activeLessonId={activeLesson?.slug} onClose={() => setIsSidebarOpen(false)} />
+        <aside className={`
+          fixed md:relative inset-y-0 left-0 z-[111] 
+          w-[300px] bg-[#f8fafc] border-r border-slate-200
+          transform transition-transform duration-500 
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
+          md:translate-x-0 md:block md:shrink-0 h-full
+        `}>
+          <Sidebar 
+            selectedData={selectedCategory} 
+            onSelectLesson={handleSelectLesson} 
+            activeLessonId={activeLesson?.slug} 
+            onClose={() => setIsSidebarOpen(false)} 
+          />
         </aside>
       )}
 
-      {/* 3. NỘI DUNG CHÍNH (Đã xóa các thanh tiến trình thừa) */}
-      <main className={`flex-1 overflow-y-auto custom-scrollbar ${isExamView ? 'bg-slate-50' : 'bg-white'}`}>
+      {/* 4. NỘI DUNG CHÍNH: */}
+      <main className={`flex-1 overflow-y-auto custom-scrollbar h-full ${isExamView ? 'bg-slate-50' : 'bg-white'}`}>
         {activeLesson ? (
-          <LessonDetail 
-            key={activeLesson.slug} 
-            lessonSlug={activeLesson.slug} 
-            lessonNumber={lessonNumber}
-            onExamDataUpdate={setExamDataFromChild} // Nhận data (bao gồm cả timeLeft) từ đây
-          />
+          <div className="min-h-full">
+            <LessonDetail 
+              key={activeLesson.slug} 
+              lessonSlug={activeLesson.slug} 
+              lessonNumber={lessonNumber}
+              onExamDataUpdate={setExamDataFromChild}
+            />
+          </div>
         ) : (
           <WelcomeView label={selectedCategory?.label} />
         )}
       </main>
 
-      {/* 4. SIDEBAR PHẢI (Desktop & Mobile Drawer) */}
+      {/* 5. SIDEBAR PHẢI (Exam) */}
       {isExamView && examDataFromChild && (
         <>
           <aside className="hidden xl:block w-[320px] h-full border-l border-slate-200 bg-white overflow-y-auto">
             <ExamSidebar {...examDataFromChild} />
           </aside>
 
-          <aside className={`fixed top-0 bottom-0 right-0 z-[120] w-[280px] bg-white shadow-2xl transition-transform duration-300 md:hidden ${isSidebarOpen ? "translate-x-0" : "translate-x-full"}`}>
+          <aside className={`fixed inset-y-0 right-0 z-[120] w-[280px] bg-white shadow-2xl transition-transform duration-300 md:hidden ${isSidebarOpen ? "translate-x-0" : "translate-x-full"}`}>
             <div className="h-full overflow-y-auto p-4">
                <div className="flex justify-between items-center mb-6">
                   <span className="font-black text-xs text-slate-400 uppercase">Bảng câu hỏi</span>
-                  <button onClick={() => setIsSidebarOpen(false)} className="w-8 h-8 bg-slate-100 rounded-full">✕</button>
+                  <button onClick={() => setIsSidebarOpen(false)} className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold">✕</button>
                </div>
                <ExamSidebar {...examDataFromChild} />
             </div>
@@ -74,14 +118,13 @@ export default function MainLayout({ selectedCategory, isSidebarOpen, setIsSideb
         </>
       )}
       
-      {/* 5. NÚT FLOATING (Duy nhất cho Mobile) */}
+      {/* 6. NÚT FLOATING cho Mobile */}
       {isExamView && (
         <button 
           className={`fixed bottom-6 right-6 z-[130] w-16 h-16 bg-slate-900 text-white rounded-2xl shadow-2xl flex items-center justify-center xl:hidden transition-all ${isSidebarOpen ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}
           onClick={() => setIsSidebarOpen(true)}
         >
           <div className="flex flex-col items-center">
-            {/* Hiển thị thời gian từ timeLeft */}
             <span className="text-[14px] font-black font-mono text-[#22c55e]">
               {examDataFromChild?.timeLeft || "00:00"}
             </span>
@@ -95,6 +138,7 @@ export default function MainLayout({ selectedCategory, isSidebarOpen, setIsSideb
   );
 }
 
+// Giữ nguyên function WelcomeView của bác...
 function WelcomeView({ label, isExamMode }) {
   const [slogan, setSlogan] = useState("");
 

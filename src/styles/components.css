@@ -42,3 +42,13 @@
     }
   }
 }
+@keyframes highlightPulse {
+  0% { background-color: #f0fdf4; ring: 2px solid #22c55e; transform: scale(1); }
+  50% { background-color: #dcfce7; transform: scale(1.02); }
+  100% { background-color: white; transform: scale(1); }
+}
+
+.highlight-lesson {
+  animation: highlightPulse 2s ease-in-out;
+  border-color: #22c55e !important;
+}

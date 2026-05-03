@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SmartText from '../../ui/smart-text';
 import { Layout, FileText, Save, Hash, Bookmark, GraduationCap } from 'lucide-react';
+import { API_BASE_URL } from '../../../api/config';
 
 const QuestionEditor = () => {
     const location = useLocation();
@@ -61,11 +62,52 @@ const QuestionEditor = () => {
         };
         return map[lvl] || "NB";
     };
-
-    // --- HÀM LƯU DỮ LIỆU VÀO MONGODB ---
+    // --- HÀM LƯU DỮ LIỆU ĐÃ ĐƯỢC CẢI TIẾN ---
     const handleSave = async () => {
-        if (!question.questionId || !question.lessonId) {
-            alert("Bác vui lòng nhập đầy đủ Question ID và Lesson ID nhé!");
+        // Kiểm tra cơ bản
+        if (!question.questionId?.trim() || !question.lessonId?.trim()) {
+            alert("Bác Nguyen vui lòng nhập đầy đủ Question ID và Lesson ID nhé!");
+            return;
+        }
+
+        // --- CHUẨN HÓA DỮ LIỆU ĐÁP ÁN ---
+        let formattedCorrectAnswer = question.correctAnswer;
+
+        try {
+            if (question.type === 'true_false') {
+                // Xử lý chuỗi nhập vào: "[True, False...]" hoặc "True, True..."
+                const cleanStr = String(question.correctAnswer)
+                    .replace(/[\[\]\s]/g, '') // Xóa ngoặc vuông và khoảng trắng
+                    .replace(/;/g, ',');      // Đổi chấm phẩy thành phẩy nếu bác gõ nhầm
+
+                // Tách mảng và ép kiểu Boolean thực thụ
+                const booleanArray = cleanStr.split(',')
+                    .filter(v => v !== '')
+                    .map(val => val.toLowerCase() === 'true' || val.toLowerCase() === 't');
+
+                if (booleanArray.length !== 4) {
+                    alert(`Câu Đúng/Sai cần đủ 4 ý. Bác đang nhập ${booleanArray.length}/4 ý!`);
+                    return;
+                }
+                formattedCorrectAnswer = booleanArray;
+            } 
+            else if (question.type === 'multiple_choice') {
+                // Hỗ trợ nhập cả A, B, C, D hoặc 0, 1, 2, 3
+                const val = String(question.correctAnswer).toUpperCase().trim();
+                const mapInput = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+                const num = mapInput[val] !== undefined ? mapInput[val] : parseInt(val);
+
+                if (isNaN(num) || num < 0 || num > 3) {
+                    alert("Đáp án trắc nghiệm bác nhập 0, 1, 2, 3 (hoặc A, B, C, D) nhé!");
+                    return;
+                }
+                formattedCorrectAnswer = num;
+            } else {
+                // Short answer hoặc Essay: Trim khoảng trắng dư thừa
+                formattedCorrectAnswer = String(question.correctAnswer).trim();
+            }
+        } catch (err) {
+            alert("Lỗi định dạng đáp án rồi bác ạ!");
             return;
         }
 
@@ -74,27 +116,27 @@ const QuestionEditor = () => {
             level: convertLevelToEnum(question.level),
             grade: Number(question.grade),
             options: question.options.map(opt => opt.trim()),
-            // Thêm các trường mặc định nếu schema yêu cầu
+            correctAnswer: formattedCorrectAnswer, // Gửi mảng/số xịn lên Server
             isPublic: true,
             tags: [] 
         };
 
         try {
-            // Thay đổi URL API cho đúng với Backend của bác
-            const response = await axios.post('http://localhost:5000/api/questions', payload);
+            // Lưu ý: Thay đổi URL nếu bác đã deploy Backend lên Vercel/Render
+            const response = await axios.post(`${API_BASE_URL}/questions`, payload);
             if (response.status === 201 || response.status === 200) {
-                alert("Đã lưu câu hỏi vào ngân hàng VMaths thành công!");
+                alert("Đã lưu vào VMaths thành công! Tuyệt vời bác Nguyen ơi!");
             }
         } catch (error) {
             console.error(error);
-            alert("Lỗi: " + (error.response?.data?.message || "Không thể kết nối đến Server"));
+            alert("Lỗi rồi bác: " + (error.response?.data?.message || "Không thể kết nối Server"));
         }
     };
 
     const isChoiceType = question.type === 'multiple_choice' || question.type === 'true_false';
 
     return (
-        <div className="flex h-screen w-full bg-[#F1F5F9] overflow-hidden font-sans text-slate-900">
+        <div className="pt-32 flex h-screen w-full bg-[#F1F5F9] overflow-hidden font-sans text-slate-900">
             
             {/* CỘT TRÁI: NHẬP LIỆU */}
             <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-[#F1F5F9]">

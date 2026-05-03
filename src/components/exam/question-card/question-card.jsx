@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import CardFront from './card-front';
 import CardBack from './card-back';
 
-const QuestionCard = ({ question, index, userAnswer, onAnswerChange, isSubmitted = false }) => {
+const QuestionCard = ({ question, index, userAnswer, onAnswerChange, isSubmitted = false,onImageClick }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const cardScopeRef = useRef(null);
 
@@ -41,8 +41,8 @@ const QuestionCard = ({ question, index, userAnswer, onAnswerChange, isSubmitted
     <div className="w-full max-w-2xl mx-auto mb-10" style={{ perspective: '2000px' }}>
       <div ref={cardScopeRef} className="relative w-full transition-transform duration-[700ms]" 
            style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', minHeight: '520px' }}>
-        <CardFront {...{question, index, userAnswer, onAnswerChange, isSubmitted}} onFlip={() => setIsFlipped(true)} />
-        <CardBack {...{correctAnswer: question?.correctAnswer, explanation: question?.explanation}} onFlipBack={() => setIsFlipped(false)} />
+        <CardFront {...{question, index, userAnswer, onAnswerChange, isSubmitted}} onFlip={() => setIsFlipped(true)} onImageClick={onImageClick}/>
+        <CardBack {...{correctAnswer: question?.correctAnswer, explanation: question?.explanation}} onFlipBack={() => setIsFlipped(false)} onImageClick={onImageClick}/>
       </div>
     </div>
   );

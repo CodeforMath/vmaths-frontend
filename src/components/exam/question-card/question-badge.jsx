@@ -4,7 +4,7 @@ const QuestionBadge = ({ index, isSubmitted, isCorrect, level }) => {
   return (
     <div className="flex items-center justify-between mb-6 text-[10px] font-black uppercase">
       <div className="flex gap-2">
-        <span className="px-4 py-1.5 bg-[#3FB8AF] text-white rounded-full shadow-sm tracking-tighter">
+        <span className="text-xs px-4 py-1.5 bg-green-500 text-white rounded-full shadow-sm tracking-tighter">
           CÂU {index + 1}
         </span>
         {isSubmitted && (

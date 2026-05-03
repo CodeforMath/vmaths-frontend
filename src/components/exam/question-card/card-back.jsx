@@ -1,7 +1,7 @@
 import React from 'react';
 import SmartText from '../../ui/smart-text';
 
-const CardBack = ({ correctAnswer, explanation, onFlipBack }) => {
+const CardBack = ({ correctAnswer, explanation, onFlipBack,onImageClick }) => {
   return (
     <div className="absolute inset-0 bg-[#3FB8AF] rounded-[2.5rem] p-6 md:p-8 shadow-xl text-white flex flex-col" 
          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', zIndex: 1 }}>
@@ -15,12 +15,12 @@ const CardBack = ({ correctAnswer, explanation, onFlipBack }) => {
         <div className="bg-white/10 p-5 rounded-3xl mb-6 border border-white/20 backdrop-blur-sm">
             <p className="text-[9px] font-black uppercase opacity-70 mb-2 tracking-widest">Đáp án đúng</p>
             <div className="text-xl font-black">
-               <SmartText text={Array.isArray(correctAnswer) ? correctAnswer.join(' - ') : String(correctAnswer)} />
+               <SmartText text={Array.isArray(correctAnswer) ? correctAnswer.join(' - ') : String(correctAnswer)} onImageClick={onImageClick}/>
             </div>
         </div>
         
         <div className="text-white/90 text-sm md:text-base leading-relaxed font-medium mb-10">
-          <SmartText text={explanation || "Nội dung lời giải đang được cập nhật."} />
+          <SmartText text={explanation || "Nội dung lời giải đang được cập nhật."} onImageClick={onImageClick}/>
         </div>
       </div>
 

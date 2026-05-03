@@ -1,8 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
-    <section className="relative w-full min-h-full flex items-center justify-center bg-[#020617] overflow-hidden">
+    <section className="relative pt-20 w-full min-h-full flex items-center justify-center bg-[#020617] overflow-hidden">
       
       {/* 1. Hiệu ứng Background: Các đốm sáng mờ tạo chiều sâu */}
       <div className="absolute top-1/4 -left-20 w-72 h-72 bg-blue-600 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 animate-pulse"></div>
@@ -34,10 +35,18 @@ const Hero = () => {
         {/* Nút bấm hành động */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-            Bắt đầu lộ trình
+            <Link 
+              to="/lessons" 
+            >
+              Bắt đầu lộ trình
+            </Link>
           </button>
           <button className="px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white rounded-xl font-bold text-lg transition-all border border-slate-700 backdrop-blur-sm">
-            Tài liệu miễn phí
+            <Link 
+              to="/documents" 
+            >
+              Tài liệu miễn phí
+            </Link>
           </button>
         </div>
 

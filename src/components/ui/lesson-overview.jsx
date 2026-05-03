@@ -15,20 +15,22 @@ const LessonOverview = ({ data, onImageClick }) => {
         <div className="flex flex-col md:flex-row items-stretch gap-8">
           
           {/* CỘT TRÁI: THUẬT NGỮ */}
-          <div className="flex-none md:w-[35%] lg:w-[32%] flex flex-col">
+          <div className="flex-none md:w-[35%] lg:w-[30%] flex flex-col">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-1.5 h-8 bg-[#ef4444] rounded-full"></div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-[#ef4444] whitespace-nowrap">
+              <h2 className="text-2xl font-black uppercase tracking-tighter text-[#ef4444]">
                 Thuật ngữ
               </h2>
             </div>
             
-            {/* bg-slate-50 giúp nhìn rõ độ cao hai bên bằng nhau */}
-            <div className="flex-1 bg-slate-50/50 p-5 rounded-3xl border border-slate-100/50">
-              <ul className="space-y-4">
+            <div className="flex-1 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100/50">
+              {/* THAY ĐỔI CHÍNH: Thêm h-full và justify-between vào thẻ ul */}
+              <ul className="flex flex-col justify-between h-full space-y-2"> 
+                {/* Lưu ý: Em để space-y-2 làm khoảng cách tối thiểu, 
+                    justify-between sẽ lo việc giãn rộng ra thêm */}
                 {keyTerms.map((term, index) => (
-                  <li key={index} className="flex items-start gap-3 text-slate-700 font-normal text-[15px]">
-                    <span className="mt-2 w-1.5 h-1 bg-[#ef4444]/40 rounded-full flex-shrink-0"></span>
+                  <li key={index} className="flex items-center gap-3 text-slate-700 font-medium text-[15px] py-1">
+                    <span className="w-1.5 h-1.5 bg-[#ef4444]/40 rounded-full flex-shrink-0"></span>
                     <SmartText 
                       text={term} 
                       className="leading-tight" 

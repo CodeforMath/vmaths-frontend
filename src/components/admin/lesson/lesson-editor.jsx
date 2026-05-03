@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import { 
   Trash2, Layout, Plus, X, 
   BookOpen, GraduationCap, 
@@ -17,7 +16,7 @@ import MathBox from '../../ui/math-box';
 import { MediaRender } from '../../ui/media-render';
 import LessonOverview from '../../ui/lesson-overview';
 import SmartText from '../../ui/smart-text';
-
+import { API_BASE_URL } from '../../../api/config';
 const LessonEditor = () => {
     const navigate = useNavigate();
     const [selectedImage, setSelectedImage] = useState(null);
@@ -44,7 +43,7 @@ const LessonEditor = () => {
 
             if (lessonIdFromUrl) {
                 try {
-                    const res = await fetch(`http://localhost:5000/api/lessons/${lessonIdFromUrl}`);
+                    const res = await fetch(`${API_BASE_URL}/lessons/${lessonIdFromUrl}`);
                     if (res.ok) {
                         const data = await res.json();
                         setFormData({
@@ -151,7 +150,7 @@ const LessonEditor = () => {
             .replace(/\s+/g, '-');
 
         try {
-            const response = await fetch('http://localhost:5000/api/lessons', {
+            const response = await fetch(`${API_BASE_URL}/lessons`, {
                 method: 'POST', // Backend nên dùng findOneAndUpdate với upsert: true
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, slug, sections, updatedAt: new Date() })
@@ -166,7 +165,7 @@ const LessonEditor = () => {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-[#F8FAFC] overflow-hidden font-sans">
+        <div className="pt-32 h-screen flex flex-col bg-[#F8FAFC] overflow-hidden font-sans">
             {/* HEADER */}
             <header className="h-16 flex-shrink-0 bg-white border-b px-8 flex items-center justify-between z-[110] shadow-sm">
                 <div className="flex items-center gap-3">

@@ -1,11 +1,10 @@
 import React from 'react';
-
+import { ASSETS_URL } from '../../api/config';
 /**
  * smart-text.jsx - Bản cập nhật hỗ trợ Callback Click để phóng to
  */
 const SmartText = ({ text, className = "", onImageClick }) => {
-  const ASSETS_URL = "http://localhost:5000/assets/";
-
+  
   if (!text || typeof text !== 'string') return null;
 
   const processContent = (rawText) => {
@@ -14,7 +13,7 @@ const SmartText = ({ text, className = "", onImageClick }) => {
       const fullUrl = `${ASSETS_URL}${cleanFileName}`;
 
       return `
-        <span class="flex justify-center w-full my-8 clear-both">
+        <span class="flex justify-center w-full my-2 clear-both">
           <img 
             src="${fullUrl}" 
             data-url="${fullUrl}" 

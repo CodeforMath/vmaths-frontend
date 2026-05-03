@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 const PracticeConfig = ({ lessonTitle, onStart }) => {
   const CONFIG = {
@@ -13,7 +13,7 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
   const [totalTime, setTotalTime] = useState(0);
 
   // 1. Logic tính toán phân bổ (Giữ nguyên thuật toán của bác)
-  const calculateDistribution = () => {
+  const currentDist = useMemo(() => {
     const totalDesired = parseInt(desiredCount) || 0;
     if (totalDesired <= 0 || selectedTypes.length === 0) return {};
 
@@ -47,11 +47,19 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
       }
     });
     return distribution;
-  };
+  }, [desiredCount, selectedTypes]);
 
-  const currentDist = calculateDistribution();
+  // 2. Tính toán Tổng điểm tối đa (True/False tính là 1.0đ)
+  const totalScore = useMemo(() => {
+    let score = 0;
+    Object.keys(currentDist).forEach(type => {
+      score += (currentDist[type] || 0) * CONFIG[type].score;
+    });
+    // Trả về số đẹp, nếu là số nguyên thì không hiện thập phân
+    return Number.isInteger(score) ? score : score.toFixed(2);
+  }, [currentDist]);
 
-  // 2. Cập nhật thời gian dự kiến
+  // 3. Cập nhật thời gian dự kiến
   useEffect(() => {
     let calculatedTime = 0;
     Object.keys(currentDist).forEach(type => {
@@ -59,7 +67,7 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
     });
     if (calculatedTime > 0) calculatedTime += 7; 
     setTotalTime(Math.round(calculatedTime));
-  }, [desiredCount, selectedTypes]);
+  }, [currentDist]);
 
   const handleInputChange = (e) => {
     const val = e.target.value;
@@ -74,20 +82,20 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
     <div className="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] border border-slate-100 p-6 md:p-10 font-sans animate-in fade-in zoom-in duration-500">
       {/* HEADER */}
       <div className="text-center mb-10">
-        <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">VMaths Studio</h2>
+        <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">KHU VỰC LUYỆN TẬP</h2>
         <div className="h-1.5 w-12 bg-[#3FB8AF] mx-auto mt-2 rounded-full mb-2"></div>
         <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{lessonTitle || "Thiết lập luyện tập"}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         {/* CỘT 1: CHỌN LOẠI CÂU HỎI */}
-        <div className="lg:col-span-6">
-          <div className="bg-slate-50 rounded-[3rem] p-8 border border-slate-100 shadow-inner h-full">
-            <h3 className="text-center text-sm font-black text-blue-600 uppercase tracking-widest mb-8">
+        <div className="lg:col-span-6 flex flex-col">
+          <div className="bg-slate-50 rounded-[3rem] p-8 border border-slate-100 shadow-inner h-full flex flex-col">
+            <h3 className="text-center text-sm font-black text-blue-600 uppercase tracking-widest mb-8 shrink-0">
               1. Chọn Loại câu hỏi
             </h3>
             
-            <div className="grid grid-cols-1 gap-4">
+            <div className="flex-1 flex flex-col justify-between gap-4">
               {Object.keys(CONFIG).map((id) => {
                 const isSelected = selectedTypes.includes(id);
                 return (
@@ -96,17 +104,17 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
                     onClick={() => setSelectedTypes(prev => 
                       prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
                     )}
-                    className={`flex items-center p-4 rounded-2xl border-2 transition-all duration-300 ${
+                    className={`flex flex-1 items-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                       isSelected 
                         ? 'border-[#3FB8AF] bg-white text-slate-700 shadow-md translate-x-2' 
                         : 'border-transparent bg-white/40 text-slate-300 grayscale opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <span className="text-xl mr-4">{CONFIG[id].icon}</span>
+                    <span className="text-xl mr-4 shrink-0">{CONFIG[id].icon}</span>
                     <div className="text-left">
                       <p className="font-black text-xs uppercase leading-tight">{CONFIG[id].label}</p>
                       <p className="text-[9px] font-bold text-orange-500 opacity-60 uppercase mt-1">
-                        {CONFIG[id].score}đ / câu
+                        {id === 'true-false' ? 'Tối đa 1.0đ / câu' : `${CONFIG[id].score}đ / câu`}
                       </p>
                     </div>
                     {isSelected && <div className="ml-auto text-[#3FB8AF] font-bold">✓</div>}
@@ -114,17 +122,18 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
                 );
               })}
             </div>
+            
           </div>
         </div>
 
         {/* CỘT 2: NHẬP SỐ & PHÂN BỔ */}
-        <div className="lg:col-span-6">
+        <div className="lg:col-span-6 flex flex-col">
           <div className="bg-slate-50 rounded-[3rem] p-8 border border-slate-100 shadow-inner h-full flex flex-col items-center">
-            <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest mb-8">
+            <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest mb-8 shrink-0">
               2. Số lượng & Phân bổ
             </h3>
             
-            <div className="relative mb-10">
+            <div className="relative mb-10 shrink-0">
               <input 
                 type="number" 
                 value={desiredCount} 
@@ -139,11 +148,11 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
               </div>
             </div>
 
-            <div className="w-full space-y-4">
+            <div className="w-full flex-1 flex flex-col justify-between space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {selectedTypes.map(type => (
-                  <div key={type} className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center">
-                    <span className="text-[8px] font-black text-slate-400 uppercase mb-1">{CONFIG[type].label}</span>
+                  <div key={type} className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center min-h-[70px]">
+                    <span className="text-[8px] font-black text-slate-400 uppercase mb-1 text-center">{CONFIG[type].label}</span>
                     <div className="flex items-baseline gap-1">
                       <span className="font-black text-[#3FB8AF] text-2xl">{currentDist[type] || 0}</span>
                       <span className="text-[8px] font-bold text-slate-300 uppercase">Câu</span>
@@ -152,24 +161,28 @@ const PracticeConfig = ({ lessonTitle, onStart }) => {
                 ))}
               </div>
 
-              <div className="bg-[#48CFC2] p-5 rounded-[2rem] shadow-lg text-white flex items-center justify-between">
-                <div>
-                  <p className="text-[9px] font-black uppercase opacity-80 mb-1">Thời gian dự kiến</p>
-                  <p className="text-3xl font-black italic">{totalTime} <span className="text-xs not-italic">PHÚT</span></p>
+              {/* KHỐI HIỂN THỊ THỜI GIAN & ĐIỂM SỐ */}
+              <div className="grid grid-cols-2 gap-3 shrink-0">
+                <div className="bg-[#48CFC2] p-4 rounded-[1.5rem] shadow-lg text-white flex flex-col justify-center">
+                   <p className="text-[8px] font-black uppercase opacity-80 mb-1">Thời gian</p>
+                   <p className="text-xl font-black italic">{totalTime} <span className="text-[10px] not-italic">PHÚT</span></p>
                 </div>
-                <div className="text-3xl opacity-50">⏳</div>
+                <div className="bg-orange-400 p-4 rounded-[1.5rem] shadow-lg text-white flex flex-col justify-center">
+                   <p className="text-[8px] font-black uppercase opacity-80 mb-1">Điểm tối đa</p>
+                   <p className="text-xl font-black italic">{totalScore} <span className="text-[10px] not-italic">ĐIỂM</span></p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* FOOTER - QUAN TRỌNG: Gửi data distribution */}
+      {/* FOOTER */}
       <div className="mt-4">
         <button 
           disabled={!isValid}
-          onClick={() => onStart(selectedTypes, totalTime, parseInt(desiredCount), currentDist)}
-          className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-xl hover:scale-[1.02] active:scale-95 transition-all shadow-2xl uppercase flex items-center justify-center gap-4 group disabled:opacity-20"
+          onClick={() => onStart(selectedTypes, totalTime, parseInt(desiredCount), currentDist, parseFloat(totalScore))}
+          className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-xl hover:bg-green-500 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl uppercase flex items-center justify-center gap-4 group disabled:opacity-20"
         >
           {parseInt(desiredCount) < 10 && desiredCount !== "" ? "Tối thiểu 10 câu" : "Bắt đầu luyện tập"}
           <span className="bg-[#3FB8AF] w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-lg">🚀</span>

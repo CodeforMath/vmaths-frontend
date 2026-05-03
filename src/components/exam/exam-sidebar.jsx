@@ -28,7 +28,7 @@ const ExamSidebar = ({
        - h-[calc(100vh-100px)]: Thu ngắn chiều cao tổng để không bị lẹm mép dưới.
        - z-0: Đảm bảo nằm dưới Header (thường Header là z-10 hoặc z-50).
     */
-    <div className="flex flex-col h-[calc(100vh-100px)] sticky top-[85px] bg-slate-50 p-5 border-l border-slate-200 overflow-hidden z-0">
+    <div className="flex flex-col h-[calc(100vh-140px)] sticky top-[100px] bg-slate-50 p-5 border-l border-slate-200 rounded-3xl overflow-hidden z-0">
       
       {/* KHỐI THÔNG TIN CHUNG */}
       <div className="mb-6 bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3 shrink-0">
@@ -77,7 +77,7 @@ const ExamSidebar = ({
         {!isSubmitted ? (
           <button 
             onClick={() => { if (window.confirm("Bác có chắc muốn nộp bài?")) onFinish(); }}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-black active:scale-95 transition-all shadow-lg"
+            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#3FB8AF] active:scale-95 transition-all shadow-lg"
           >
             NỘP BÀI THI
           </button>

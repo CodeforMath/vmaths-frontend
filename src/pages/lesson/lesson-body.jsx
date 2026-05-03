@@ -1,17 +1,17 @@
 import React from 'react';
 import { MathJax } from 'better-react-mathjax'; 
-import SmartText from '../../../components/ui/smart-text';
-import MathBox from '../../../components/ui/math-box';
-import { SectionHeading } from '../../../components/ui/lesson-heading';
-import { MediaRender } from '../../../components/ui/media-render';
-import LessonOverview from '../../../components/ui/lesson-overview';
+import SmartText from '../../components/ui/smart-text';
+import MathBox from '../../components/ui/math-box';
+import { SectionHeading } from '../../components/ui/lesson-heading';
+import { MediaRender } from '../../components/ui/media-render';
+import LessonOverview from '../../components/ui/lesson-overview';
 
 const LessonBody = ({ sections, onImageClick, lessonId }) => {
   return (
     /* - mt-20: Đẩy toàn bộ nội dung bài học xuống thấp hơn so với Header và tiêu đề.
        - space-y-16: Tạo khoảng cách rộng rãi giữa các khối kiến thức (heading, paragraph, mathbox).
     */
-    <div className="mt-20 space-y-16">
+    <div className="mt-20">
       {sections && sections.map((block, index) => {
         const d = block.data || {};
         
